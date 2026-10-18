@@ -1,0 +1,3 @@
+import{describe,expect,it}from'vitest';import{appointmentEnd,canTransition,overlaps}from'./booking.js';
+const at=(h:number,m=0)=>new Date(Date.UTC(2026,9,16,h,m));
+describe('booking domain',()=>{it('detects partial overlap',()=>expect(overlaps({startAt:at(9),endAt:at(10)},{startAt:at(9,30),endAt:at(10,30)})).toBe(true));it('allows adjacent appointments',()=>expect(overlaps({startAt:at(9),endAt:at(10)},{startAt:at(10),endAt:at(11)})).toBe(false));it('includes buffer in end time',()=>expect(appointmentEnd(at(9),60,15)).toEqual(at(10,15)));it('enforces status transitions',()=>{expect(canTransition('pending','confirmed')).toBe(true);expect(canTransition('completed','confirmed')).toBe(false)})});
