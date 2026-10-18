@@ -1,6 +1,9 @@
 import {config} from 'dotenv';
 import mongoose from 'mongoose';
+import {createServer} from 'node:http';
 import {app} from './app.js';
+import {isAdminHeaders} from './routes.js';
+import {attachRealtime} from './realtime.js';
 import {Customer} from './models/index.js';
 
 config({path:new URL('../.env',import.meta.url)});
@@ -8,7 +11,9 @@ config({path:new URL('../../.env',import.meta.url)});
 
 const port=Number(process.env.PORT??4000),uri=process.env.MONGODB_URI;
 mongoose.set('bufferCommands',false);
-app.listen(port,()=>console.log(`API listening on http://localhost:${port}`));
+const server=createServer(app);
+attachRealtime(server,isAdminHeaders);
+server.listen(port,()=>console.log(`API listening on http://localhost:${port}`));
 
 async function connectDatabase(){
  if(!uri){console.warn('MONGODB_URI is not set. Database features are unavailable.');return}
