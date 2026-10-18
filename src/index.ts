@@ -1,6 +1,7 @@
 import {config} from 'dotenv';
 import mongoose from 'mongoose';
 import {app} from './app.js';
+import {Customer} from './models/index.js';
 
 config({path:new URL('../.env',import.meta.url)});
 config({path:new URL('../../.env',import.meta.url)});
@@ -12,7 +13,7 @@ app.listen(port,()=>console.log(`API listening on http://localhost:${port}`));
 async function connectDatabase(){
  if(!uri){console.warn('MONGODB_URI is not set. Database features are unavailable.');return}
  if(mongoose.connection.readyState===1||mongoose.connection.readyState===2)return;
- try{await mongoose.connect(uri,{dbName:'salon_tiran',serverSelectionTimeoutMS:8_000});console.log('MongoDB connected')}
+ try{await mongoose.connect(uri,{dbName:'salon_tiran',serverSelectionTimeoutMS:8_000});await Customer.syncIndexes();console.log('MongoDB connected')}
  catch(error){console.error('Database connection failed; retrying:',error instanceof Error?error.message:'Unknown connection error');setTimeout(connectDatabase,5_000)}
 }
 mongoose.connection.on('disconnected',()=>setTimeout(connectDatabase,2_000));
