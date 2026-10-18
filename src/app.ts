@@ -1,6 +1,7 @@
 import express from 'express';import helmet from 'helmet';import cors from 'cors';import compression from 'compression';import morgan from 'morgan';import {rateLimit} from 'express-rate-limit';import {ZodError} from 'zod';import router from './routes.js';
 export const app=express();
-const allowedOrigins=(process.env.CLIENT_URLS??process.env.CLIENT_URL??'http://localhost:5173').split(',').map(value=>value.trim().replace(/\/$/,'')).filter(Boolean);
+const productionClientUrl='https://salon-tiran-frontend-three.vercel.app';
+const allowedOrigins=[...(process.env.CLIENT_URLS??process.env.CLIENT_URL??'http://localhost:5173').split(','),...(process.env.NODE_ENV==='production'?[productionClientUrl]:[])].map(value=>value.trim().replace(/\/$/,'')).filter(Boolean);
 app.disable('x-powered-by');app.use(helmet());app.use(cors({origin(origin,callback){if(!origin||allowedOrigins.includes(origin.replace(/\/$/,'')))return callback(null,true);return callback(new Error('Origin is not allowed by CORS'))},credentials:true}));app.use(compression());app.use(express.json({limit:'1mb'}));app.use(morgan('tiny'));app.use('/api',rateLimit({windowMs:60_000,limit:120,standardHeaders:'draft-7'}),router);
 app.use((_req,res)=>res.status(404).json({error:{code:'NOT_FOUND',message:'Resource not found'}}));
 app.use((error:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{if(error instanceof ZodError)return res.status(400).json({error:{code:'VALIDATION_ERROR',message:'Please check the submitted details.',details:error.flatten()}});console.error(error);return res.status(500).json({error:{code:'INTERNAL_ERROR',message:'Something went wrong.'}})});
